@@ -4,6 +4,7 @@ import { LoginPage } from '../Pages/Login/Login.page';
 import { HomePage } from '../Pages/Home/home.page';
 import { EventsPage } from '../Pages/Events/events.page';
 import { NewEventPage } from '../Pages/Events/newEvent.page';
+import { BookNewEventTicketPage } from '../Pages/Events/BookNewEventTicket.page';
 
 test.describe('EventHub Login Tests', () => {
   test('Login with valid credentials', async ({ page }) => {
@@ -53,7 +54,25 @@ test.describe('As an Admin I should be able to add new Event and book from it', 
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(500);
     await expect(eventsPage.getEventCount()).resolves.toBe(1);
+    const eventPrice = await eventsPage.getEventPrice('Playwright Test Event');
+    const eventAvailableSeats = (await eventsPage.getEventAvailableSeats('Playwright Test Event')).split(' ')[0];
+    console.log('Event Available Seats:', eventAvailableSeats);
+    console.log('Event Price:', eventPrice);
+    await eventsPage.getEventBookButtonAndClick('Playwright Test Event');
     //await expect(eventsPage.getEventCount()).resolves.toBe(1);
-    //await page.pause();
+    const bookNewEventTicketPage = new BookNewEventTicketPage(page);
+    await expect(bookNewEventTicketPage.bookingTotalForm).toBeVisible();
+    await expect(bookNewEventTicketPage.topRightPrice).toHaveText(eventPrice);
+    await bookNewEventTicketPage.increaseTicketQuantity(2);
+    await bookNewEventTicketPage.fillBookingForm('John Doe', 'john.doe@example.com', '07987654321');
+    await bookNewEventTicketPage.submitBooking();
+    await homePage.navigateToHome();
+    page.waitForLoadState('domcontentloaded');
+    await homePage.navigateToEvents();
+    await eventsPage.searchEvent('Playwright Test Event');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(500);
+    await expect(eventsPage.getEventAvailableSeats('Playwright Test Event')).resolves.toBe(`${parseInt(eventAvailableSeats) - 3} seats available`);
+    await page.pause();
   });
 });
