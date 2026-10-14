@@ -162,7 +162,6 @@ test.describe('Event creation and ticket booking', () => {
         const totalBookingsCountBeforeCancel = await mybookings.totalBookingCount();
         await mybookings.cancelBookingRefID("A-CCJZXJ")
         expect(await mybookings.cancelStatusMessage.innerText()).toBe("Booking cancelled successfully");
-        //await expect(mybookings.bookingsList.first()).toBeVisible();
         expect(await mybookings.totalBookingCount()).toEqual(totalBookingsCountBeforeCancel - 1);
     })
 });
