@@ -11,8 +11,8 @@ export class HomePage {
     constructor(page: Page) {
         this.page = page
         this.homeLink = page.getByRole('link', { name: 'Home' })
-        this.eventLink = page.getByRole('link', { name: 'Events' , exact: true })
-        this.myBookingsLink = page.getByRole('link', { name: 'My Bookings' })
+        this.eventLink = page.getByTestId('nav-events')
+        this.myBookingsLink = page.getByTestId('nav-bookings')
         this.apiDocsLink = page.getByRole('link', { name: 'API Docs' })
         this.adminButton = page.getByRole('button', { name: 'Admin' })
     }
@@ -31,7 +31,7 @@ export class HomePage {
     }
     async navigateToAdmin(option:string): Promise<void> {
         await this.adminButton.click().then(async () => {
-            await this.page.getByRole('link', { name: option }).click()
+            await this.page.getByRole('navigation').getByRole('link', { name: option }).click()
         })
     }
 }

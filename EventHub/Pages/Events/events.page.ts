@@ -12,7 +12,6 @@ export class EventsPage {
         this.addEventButton = page.getByRole('button', { name: 'Add New Event' })
         this.searchInput = page.getByPlaceholder('Search events, venues…')
     }
-
     async navigateToAddEvent(): Promise<void> {
         await this.addEventButton.click()
     }
@@ -35,5 +34,9 @@ export class EventsPage {
         const eventCard = this.page.getByTestId('event-card').filter({ hasText: eventName })
         const availableSeatsLocator = eventCard.getByText(/\d+\s+seats available/i)
         return await availableSeatsLocator.textContent() || ''
+    }
+    async getEventTitle(eventName: string): Promise<Locator> {
+        const eventCard = this.page.getByTestId('event-card').filter({hasText: eventName})
+        return await eventCard.getByText(eventName);
     }
 }
