@@ -11,6 +11,7 @@ export class NewEventPage extends EventsPage {
     readonly eventTotalSeatsInput: Locator
     readonly addEventSubmitButton: Locator
     readonly allEvents: Locator
+    readonly eventDeleteStatus: Locator
 
     constructor(page: Page) {
         super(page)
@@ -24,6 +25,7 @@ export class NewEventPage extends EventsPage {
         this.eventTotalSeatsInput = page.getByRole('spinbutton', { name: 'Total Seats' })
         this.addEventSubmitButton = page.getByRole('button', { name: 'Add Event' })
         this.allEvents = page.getByTestId('event-table-row')
+        this.eventDeleteStatus = page.getByText('Event deleted')
     }
 
     async addNewEvent(eventTitle: string, eventDescription: string, eventCategory: string, eventCity: string, eventVenue: string, eventDateAndTime: string, eventPrice: number, eventTotalSeats: number): Promise<void> {
@@ -38,10 +40,23 @@ export class NewEventPage extends EventsPage {
         await this.addEventSubmitButton.click()
     }
 
-    async getLastEventTitle(): Promise<string> {
-        const lastEvent = this.allEvents.last()
+    async getLastAddedEventTitle(eventTitle: string): Promise<string> {
+        const lastEvent = this.allEvents.filter({ hasText: eventTitle })
         const titleLocator = lastEvent.locator('td').nth(0)
         return await titleLocator.textContent() || ''
     }
+
+    async deleteEventBasedOnTitle(eventTitle: string): Promise<void> {
+        await this.allEvents.filter({ hasText: eventTitle }).getByTestId('delete-event-btn').click()
+    }
+
+    async deleteLastEvent(): Promise<void> {
+        await this.allEvents
+            .last()
+            .getByTestId('delete-event-btn')
+            .click();
+        await this.page
+            .getByTestId('confirm-dialog-yes')
+            .click();
+    }
 }
-    

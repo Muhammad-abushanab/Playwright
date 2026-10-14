@@ -10,6 +10,7 @@ export class BookNewEventTicketPage {
     readonly confirmBookingButton: Locator
     readonly bookingTotalForm: Locator
     readonly topRightPrice: Locator
+    private bookingReferenceId: Locator
 
     constructor(page: Page) {
         this.page = page
@@ -21,6 +22,7 @@ export class BookNewEventTicketPage {
         this.confirmBookingButton = page.getByRole('button', { name: 'Confirm Booking' })
         this.bookingTotalForm = page.locator('form div.bg-indigo-50')
         this.topRightPrice = page.getByRole('heading', { name: 'Book Tickets' }).locator('+ span');
+        this.bookingReferenceId = page.locator('span.booking-ref')
     }
 
     async increaseTicketQuantity(times: number): Promise<void> {
@@ -34,6 +36,7 @@ export class BookNewEventTicketPage {
             await this.ticketQuantityDecreaseButton.click()
         }
     }
+
     async fillBookingForm(fullName: string, email: string, phoneNumber: string): Promise<void> {
         await this.fullNameInput.fill(fullName)
         await this.emailInput.fill(email)
@@ -44,5 +47,9 @@ export class BookNewEventTicketPage {
     }
     async getTopRightPrice(): Promise<string> {
         return await this.topRightPrice.textContent() || ''
+    }
+
+    async getBookingReferenceID(): Promise<string> {
+        return await this.bookingReferenceId.innerText();
     }
 }
