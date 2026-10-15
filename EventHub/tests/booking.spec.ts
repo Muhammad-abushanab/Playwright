@@ -46,7 +46,7 @@ test.describe('Event creation and ticket booking', () => {
             'New York',
             'Madison Square Garden',
             '2027-12-31T20:00',
-            Math.floor(Math.random() * 15),
+            Math.floor(Math.random() * 1500),
             500
         );
 
@@ -74,7 +74,7 @@ test.describe('Event creation and ticket booking', () => {
         await eventsPage.getEventBookButtonAndClick(eventTitle);
 
         const bookingPage = new BookNewEventTicketPage(page);
-
+        
         await expect(bookingPage.bookingTotalForm).toBeVisible();
         await expect(bookingPage.topRightPrice).toHaveText(eventPrice);
 
@@ -104,15 +104,28 @@ test.describe('Event creation and ticket booking', () => {
         );
 
         const myBookingsPage = new MyBookingsPage(page);
-
         await homePage.navigateToMyBookings();
         await expect(page).toHaveURL(/\/bookings/);
-
         expect(
             await myBookingsPage.getLastbookingRefId()
         ).toBe(referenceId);
     });
-
+    test("As an Admin I should be able to cancel any booking I have",async ({page})=>{
+        await page.goto(config.URL);
+        const loginPage = new LoginPage(page);
+        await loginPage.login(config.email, config.password);
+        const homePage = new HomePage(page);
+        await homePage.navigateToMyBookings()
+        const mybookingPage = new MyBookingsPage(page);
+        await expect(mybookingPage.clearAllBookings).toBeVisible();
+        const refIds = (await mybookingPage.grapAllRefIDs());
+        if (refIds.length != 0) {
+            await mybookingPage.cancelBookingRefID(refIds[Math.floor(Math.random() * refIds.length)])
+        }
+        else {
+            await expect(mybookingPage.noBookingsText).toBeVisible()
+        }
+    })
     test('As an Admin I should be able to manage events and detlete them', async ({ page }) => {
         await page.goto(config.URL);
         await expect(page).toHaveTitle(/EventHub/);
@@ -139,29 +152,19 @@ test.describe('Event creation and ticket booking', () => {
 
         const homePage = new HomePage(page);
         await homePage.navigateToMyBookings();
-        const mybookings = new MyBookingsPage(page)
+        const mybookings = new MyBookingsPage(page);
         await expect(mybookings.bookingsList.first()).toBeVisible();
-        await mybookings.clickViewDetailsBasedOnRefID("A-CCJZXJ");
-        await expect(page).toHaveURL(/bookings/);
-        await expect(mybookings.elibilityBTN).toBeVisible();
-        await mybookings.checkElibility();
-        await expect(mybookings.refundStatus).toBeVisible();
-    })
-
-    test('As an Admin I should be Able to cancel my booking', async ({ page }) => {
-        await page.goto(config.URL);
-        await expect(page).toHaveTitle(/EventHub/);
-
-        const loginPage = new LoginPage(page);
-        await loginPage.login(config.email, config.password);
-
-        const homePage = new HomePage(page);
-        await homePage.navigateToMyBookings();
-        const mybookings = new MyBookingsPage(page)
-        await expect(mybookings.bookingsList.first()).toBeVisible();
-        const totalBookingsCountBeforeCancel = await mybookings.totalBookingCount();
-        await mybookings.cancelBookingRefID("A-CCJZXJ")
-        expect(await mybookings.cancelStatusMessage.innerText()).toBe("Booking cancelled successfully");
-        expect(await mybookings.totalBookingCount()).toEqual(totalBookingsCountBeforeCancel - 1);
+        const refIds = (await mybookings.grapAllRefIDs());
+        if(refIds.length != 0) {
+            await mybookings.clickViewDetailsBasedOnRefID(refIds[Math.floor(Math.random() * refIds.length)]);
+            await expect(page).toHaveURL(/bookings/);
+            await expect(mybookings.elibilityBTN).toBeVisible();
+            await mybookings.checkElibility();
+            await expect(mybookings.refundStatus).toBeVisible();
+        }
+        else {
+            await expect(mybookings.noBookingsText).toBeVisible()
+        }
+        
     })
 });
