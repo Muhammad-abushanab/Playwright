@@ -5,6 +5,7 @@ import { LoginPage } from '../Pages/Login/Login.page';
 import { HomePage } from '../Pages/Home/home.page';
 import { EventsPage } from '../Pages/Events/events.page';
 import { NewEventPage } from '../Pages/Events/newEvent.page';
+import { ManageEventsPage } from '../Pages/Events/ManageEvents.page';
 import { BookNewEventTicketPage } from '../Pages/Events/BookNewEventTicket.page';
 import { MyBookingsPage } from '../Pages/Mybookings/MyBooking.page';
 
@@ -39,30 +40,21 @@ test.describe('Event creation and ticket booking', () => {
 
         const newEventPage = new NewEventPage(page);
 
-        await newEventPage.addNewEvent(
-            eventTitle,
-            'Event created using Playwright',
-            'Sports',
-            'New York',
-            'Madison Square Garden',
-            '2027-12-31T20:00',
-            Math.floor(Math.random() * 1500),
-            500
-        );
-
-        await expect(
-            newEventPage.getLastAddedEventTitle(eventTitle)
-        ).resolves.toBe(eventTitle);
+        await newEventPage.addNewEvent({
+            title: eventTitle,
+            description: 'Event created using Playwright',
+            category: 'Sports',
+            city: 'New York',
+            venue: 'Madison Square Garden',
+            dateAndTime: '2027-12-31T20:00',
+            price: Math.floor(Math.random() * 1500),
+            totalSeats: 500,
+        });
 
         await homePage.navigateToEvents();
         await eventsPage.searchEvent(eventTitle);
-        await page.waitForTimeout(1000)
-
-        expect(await eventsPage.getEventTitle(eventTitle)).toBeInViewport()
-        await page.waitForLoadState('domcontentloaded')
-        await expect(
-            eventsPage.getEventCount()
-        ).resolves.toBe(1);
+        await expect(eventsPage.getEventTitle(eventTitle)).toBeInViewport();
+        await expect(eventsPage.eventCards).toHaveCount(1);
 
         const initialSeats = Number(
             (await eventsPage.getEventAvailableSeats(eventTitle))
@@ -71,7 +63,7 @@ test.describe('Event creation and ticket booking', () => {
 
         const eventPrice = await eventsPage.getEventPrice(eventTitle);
 
-        await eventsPage.getEventBookButtonAndClick(eventTitle);
+        await eventsPage.clickBookNow(eventTitle);
 
         const bookingPage = new BookNewEventTicketPage(page);
         
@@ -96,19 +88,15 @@ test.describe('Event creation and ticket booking', () => {
 
         await homePage.navigateToEvents();
         await eventsPage.searchEvent(eventTitle);
-        await page.waitForTimeout(1000)
-        await expect(
-            eventsPage.getEventAvailableSeats(eventTitle)
-        ).resolves.toBe(
+        await expect(eventsPage.eventCards).toHaveCount(1);
+        await expect.poll(() => eventsPage.getEventAvailableSeats(eventTitle)).toBe(
             `${initialSeats - ticketQuantity - 1} seats available`
         );
 
         const myBookingsPage = new MyBookingsPage(page);
         await homePage.navigateToMyBookings();
         await expect(page).toHaveURL(/\/bookings/);
-        expect(
-            await myBookingsPage.getLastbookingRefId()
-        ).toBe(referenceId);
+        await expect.poll(() => myBookingsPage.getFirstBookingRefId()).toBe(referenceId);
     });
     test("As an Admin I should be able to cancel any booking I have",async ({page})=>{
         await page.goto(config.URL);
@@ -118,9 +106,9 @@ test.describe('Event creation and ticket booking', () => {
         await homePage.navigateToMyBookings()
         const mybookingPage = new MyBookingsPage(page);
         await expect(mybookingPage.clearAllBookings).toBeVisible();
-        const refIds = (await mybookingPage.grapAllRefIDs());
+        const refIds = await mybookingPage.getBookingRefIds();
         if (refIds.length != 0) {
-            await mybookingPage.cancelBookingRefID(refIds[Math.floor(Math.random() * refIds.length)])
+            await mybookingPage.cancelBookingByRefId(refIds[Math.floor(Math.random() * refIds.length)])
         }
         else {
             await expect(mybookingPage.noBookingsText).toBeVisible()
@@ -136,11 +124,10 @@ test.describe('Event creation and ticket booking', () => {
         const homePage = new HomePage(page);
         await homePage.navigateToAdmin('Manage Events');
 
-        const newEventPage = new NewEventPage(page);
-        await expect(newEventPage.allEvents.first()).toBeVisible()
-        //await newEventPage.deleteEventBasedOnTitle("Automation Testing 1791710296080");
-        await newEventPage.deleteLastEvent();
-        await expect(newEventPage.eventDeleteStatus).toBeVisible();
+        const manageEventsPage = new ManageEventsPage(page);
+        await expect(manageEventsPage.eventRows.first()).toBeVisible();
+        await manageEventsPage.deleteLastEvent();
+        await expect(manageEventsPage.eventDeleteStatus).toBeVisible();
     })
 
     test('As an Admin I should be Able to view the details of my booking and check refund eligibilty', async ({ page }) => {
@@ -154,12 +141,12 @@ test.describe('Event creation and ticket booking', () => {
         await homePage.navigateToMyBookings();
         const mybookings = new MyBookingsPage(page);
         await expect(mybookings.bookingsList.first()).toBeVisible();
-        const refIds = (await mybookings.grapAllRefIDs());
+        const refIds = await mybookings.getBookingRefIds();
         if(refIds.length != 0) {
-            await mybookings.clickViewDetailsBasedOnRefID(refIds[Math.floor(Math.random() * refIds.length)]);
+            await mybookings.clickViewDetailsByRefId(refIds[Math.floor(Math.random() * refIds.length)]);
             await expect(page).toHaveURL(/bookings/);
-            await expect(mybookings.elibilityBTN).toBeVisible();
-            await mybookings.checkElibility();
+            await expect(mybookings.checkRefundEligibilityButton).toBeVisible();
+            await mybookings.checkRefundEligibility();
             await expect(mybookings.refundStatus).toBeVisible();
         }
         else {

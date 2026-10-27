@@ -1,5 +1,7 @@
 import {Page, Locator} from "@playwright/test";
 
+export type AdminNavigationOption = 'Manage Events';
+
 export class HomePage {
     readonly page: Page
     readonly homeLink: Locator
@@ -29,9 +31,8 @@ export class HomePage {
     async navigateToApiDocs(): Promise<void> {
         await this.apiDocsLink.click()
     }
-    async navigateToAdmin(option:string): Promise<void> {
-        await this.adminButton.click().then(async () => {
-            await this.page.getByRole('navigation').getByRole('link', { name: option }).click()
-        })
+    async navigateToAdmin(option: AdminNavigationOption): Promise<void> {
+        await this.adminButton.click();
+        await this.page.getByRole('navigation').getByRole('link', { name: option }).click();
     }
 }

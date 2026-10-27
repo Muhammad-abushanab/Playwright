@@ -32,6 +32,6 @@ test('inject the token to local storage', async ({page})=>{
     await expect(homepage.eventLink).toBeInViewport({ratio: 1.0});
     await homepage.navigateToEvents();
     const evenPage = new EventsPage(page)
-    await evenPage.allEvents.filter({ hasText:"Automation Testing Wednesday, October 14, 2026 at 10:05 AM"}).scrollIntoViewIfNeeded()
-    await expect(evenPage.allEvents.filter({ hasText:"Automation Testing Wednesday, October 14, 2026 at 10:05 AM"})).toBeInViewport({ratio:0.7})
+    await evenPage.eventCards.filter({ hasText:"Automation Testing Wednesday, October 14, 2026 at 10:05 AM"}).scrollIntoViewIfNeeded()
+    await expect(evenPage.eventCards.filter({ hasText:"Automation Testing Wednesday, October 14, 2026 at 10:05 AM"})).toBeInViewport({ratio:0.7})
 })

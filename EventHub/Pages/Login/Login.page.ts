@@ -19,7 +19,7 @@ export class LoginPage {
         this.passwordErrorMessage = page.getByText('Password must be at least 6 characters')
     }
 
-    async login(email: string, password: string) {
+    async login(email: string, password: string): Promise<void> {
         await this.emailInput.fill(email)
         await this.passwordInput.fill(password)
         await this.loginButton.click()
