@@ -8,7 +8,7 @@ test.describe('EventHub Login Tests', () => {
     await page.goto(config.URL);
     await expect(page).toHaveTitle(/EventHub/);
     const loginPage = new LoginPage(page);
-    loginPage.login(config.email, config.password);
+    await loginPage.login(config.email, config.password);
     const homePage = new HomePage(page);
     await expect(homePage.homeLink).toBeVisible();
   })
@@ -16,14 +16,14 @@ test.describe('EventHub Login Tests', () => {
     await page.goto(config.URL);
     await expect(page).toHaveTitle(/EventHub/);
     const loginPage = new LoginPage(page);
-    loginPage.login('invalid@example.com', 'InvalidPassword');
+    await loginPage.login('invalid@example.com', 'InvalidPassword');
     await expect(loginPage.errorMessage).toBeVisible();
   });
   test('Login with empty credentials', async ({ page }) => {
     await page.goto(config.URL);
     await expect(page).toHaveTitle(/EventHub/);
     const loginPage = new LoginPage(page);
-    loginPage.login('', '');
+    await loginPage.login('', '');
     await expect(loginPage.passwordErrorMessage).toBeVisible();
   });
 });

@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test"
+import { test, expect } from "@playwright/test"
 import { config } from "../config/config";
 import { LoginPage } from "../Pages/Login/Login.page";
 import { HomePage } from "../Pages/Home/home.page";
@@ -45,30 +45,21 @@ test('Admin can create an event and book tickets', async ({browser}) => {
 
     const newEventPage = new NewEventPage(page);
 
-    await newEventPage.addNewEvent(
-        eventTitle,
-        'Event created using Playwright',
-        'Sports',
-        'New York',
-        'Madison Square Garden',
-        '2027-12-31T20:00',
-        Math.floor(Math.random() * 15),
-        500
-    );
-
-    await expect(
-        newEventPage.getLastAddedEventTitle(eventTitle)
-    ).resolves.toBe(eventTitle);
+    await newEventPage.addNewEvent({
+        title: eventTitle,
+        description: 'Event created using Playwright',
+        category: 'Sports',
+        city: 'New York',
+        venue: 'Madison Square Garden',
+        dateAndTime: '2027-12-31T20:00',
+        price: Math.floor(Math.random() * 15),
+        totalSeats: 500,
+    });
 
     await homePage.navigateToEvents();
     await eventsPage.searchEvent(eventTitle);
-    await page.waitForTimeout(1000)
-
-    expect(await eventsPage.getEventTitle(eventTitle)).toBeInViewport()
-    await page.waitForLoadState('domcontentloaded')
-    await expect(
-        eventsPage.getEventCount()
-    ).resolves.toBe(1);
+    await expect(eventsPage.getEventTitle(eventTitle)).toBeInViewport();
+    await expect(eventsPage.eventCards).toHaveCount(1);
 
     const initialSeats = Number(
         (await eventsPage.getEventAvailableSeats(eventTitle))
@@ -77,7 +68,7 @@ test('Admin can create an event and book tickets', async ({browser}) => {
 
     const eventPrice = await eventsPage.getEventPrice(eventTitle);
 
-    await eventsPage.getEventBookButtonAndClick(eventTitle);
+    await eventsPage.clickBookNow(eventTitle);
 
     const bookingPage = new BookNewEventTicketPage(page);
 
@@ -102,10 +93,8 @@ test('Admin can create an event and book tickets', async ({browser}) => {
 
     await homePage.navigateToEvents();
     await eventsPage.searchEvent(eventTitle);
-    await page.waitForTimeout(1000)
-    await expect(
-        eventsPage.getEventAvailableSeats(eventTitle)
-    ).resolves.toBe(
+    await expect(eventsPage.eventCards).toHaveCount(1);
+    await expect.poll(() => eventsPage.getEventAvailableSeats(eventTitle)).toBe(
         `${initialSeats - ticketQuantity - 1} seats available`
     );
 
@@ -114,7 +103,5 @@ test('Admin can create an event and book tickets', async ({browser}) => {
     await homePage.navigateToMyBookings();
     await expect(page).toHaveURL(/\/bookings/);
 
-    expect(
-        await myBookingsPage.getLastbookingRefId()
-    ).toBe(referenceId);
+    await expect.poll(() => myBookingsPage.getFirstBookingRefId()).toBe(referenceId);
 });

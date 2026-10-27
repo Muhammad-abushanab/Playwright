@@ -2,13 +2,13 @@ import { Page, Locator } from "@playwright/test";
 
 export class EventsPage {
     readonly page: Page
-    readonly allEvents: Locator
+    readonly eventCards: Locator
     readonly addEventButton: Locator
     readonly searchInput: Locator
 
     constructor(page: Page) {
         this.page = page
-        this.allEvents = page.getByTestId('event-card')
+        this.eventCards = page.getByTestId('event-card')
         this.addEventButton = page.getByRole('button', { name: 'Add New Event' })
         this.searchInput = page.getByPlaceholder('Search events, venues…')
     }
@@ -19,24 +19,27 @@ export class EventsPage {
         await this.searchInput.fill(eventName)
     }
     async getEventCount(): Promise<number> {
-        return await this.allEvents.count()
+        return this.eventCards.count()
     }
-    async getEventBookButtonAndClick(eventName: string): Promise<void> {
-        const eventCard = this.page.getByTestId('event-card').filter({ hasText: eventName })
+    async clickBookNow(eventName: string): Promise<void> {
+        const eventCard = this.eventCard(eventName)
         await eventCard.getByRole('link', { name: 'Book Now' }).click()
     }
     async getEventPrice(eventName: string): Promise<string> {
-        const eventCard = this.page.getByTestId('event-card').filter({ hasText: eventName })
+        const eventCard = this.eventCard(eventName)
         const priceLocator = eventCard.getByText(/\$\d+(\.\d{2})?/)
-        return await priceLocator.textContent() || ''
+        return priceLocator.innerText()
     }
     async getEventAvailableSeats(eventName: string): Promise<string> {
-        const eventCard = this.page.getByTestId('event-card').filter({ hasText: eventName })
+        const eventCard = this.eventCard(eventName)
         const availableSeatsLocator = eventCard.getByText(/\d+\s+seats available/i)
-        return await availableSeatsLocator.textContent() || ''
+        return availableSeatsLocator.innerText()
     }
-    async getEventTitle(eventName: string): Promise<Locator> {
-        const eventCard = this.page.getByTestId('event-card').filter({hasText: eventName})
-        return await eventCard.getByText(eventName);
+    getEventTitle(eventName: string): Locator {
+        return this.eventCard(eventName).getByText(eventName, { exact: true });
+    }
+
+    private eventCard(eventName: string): Locator {
+        return this.eventCards.filter({ hasText: eventName });
     }
 }

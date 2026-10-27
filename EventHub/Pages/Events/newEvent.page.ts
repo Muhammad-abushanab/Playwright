@@ -1,6 +1,18 @@
 import { Page, Locator } from "@playwright/test";
-import { EventsPage } from "./events.page";
-export class NewEventPage extends EventsPage {
+
+export interface NewEventDetails {
+    title: string;
+    description: string;
+    category: string;
+    city: string;
+    venue: string;
+    dateAndTime: string;
+    price: number;
+    totalSeats: number;
+}
+
+export class NewEventPage {
+    readonly page: Page
     readonly eventTitleInput: Locator
     readonly eventDescriptionInput: Locator
     readonly eventCategorySelect: Locator
@@ -10,11 +22,9 @@ export class NewEventPage extends EventsPage {
     readonly eventPriceInput: Locator
     readonly eventTotalSeatsInput: Locator
     readonly addEventSubmitButton: Locator
-    readonly allEvents: Locator
-    readonly eventDeleteStatus: Locator
 
     constructor(page: Page) {
-        super(page)
+        this.page = page
         this.eventTitleInput = page.getByRole('textbox', { name: 'Title' })
         this.eventDescriptionInput = page.getByPlaceholder('Describe the event…')
         this.eventCategorySelect = page.getByRole('combobox', { name: 'Category' })
@@ -24,39 +34,17 @@ export class NewEventPage extends EventsPage {
         this.eventPriceInput = page.getByRole('spinbutton', { name: 'Price' })
         this.eventTotalSeatsInput = page.getByRole('spinbutton', { name: 'Total Seats' })
         this.addEventSubmitButton = page.getByRole('button', { name: 'Add Event' })
-        this.allEvents = page.getByTestId('event-table-row')
-        this.eventDeleteStatus = page.getByText('Event deleted')
     }
 
-    async addNewEvent(eventTitle: string, eventDescription: string, eventCategory: string, eventCity: string, eventVenue: string, eventDateAndTime: string, eventPrice: number, eventTotalSeats: number): Promise<void> {
-        await this.eventTitleInput.fill(eventTitle)
-        await this.eventDescriptionInput.fill(eventDescription)
-        await this.eventCategorySelect.selectOption({ label: eventCategory })
-        await this.eventCityInput.fill(eventCity)
-        await this.eventVenueInput.fill(eventVenue)
-        await this.eventDateAndTimeInput.fill(eventDateAndTime)
-        await this.eventPriceInput.fill(eventPrice.toString())
-        await this.eventTotalSeatsInput.fill(eventTotalSeats.toString())
+    async addNewEvent(event: NewEventDetails): Promise<void> {
+        await this.eventTitleInput.fill(event.title)
+        await this.eventDescriptionInput.fill(event.description)
+        await this.eventCategorySelect.selectOption({ label: event.category })
+        await this.eventCityInput.fill(event.city)
+        await this.eventVenueInput.fill(event.venue)
+        await this.eventDateAndTimeInput.fill(event.dateAndTime)
+        await this.eventPriceInput.fill(event.price.toString())
+        await this.eventTotalSeatsInput.fill(event.totalSeats.toString())
         await this.addEventSubmitButton.click()
-    }
-
-    async getLastAddedEventTitle(eventTitle: string): Promise<string> {
-        const lastEvent = this.allEvents.filter({ hasText: eventTitle })
-        const titleLocator = lastEvent.locator('td').nth(0)
-        return await titleLocator.textContent() || ''
-    }
-
-    async deleteEventBasedOnTitle(eventTitle: string): Promise<void> {
-        await this.allEvents.filter({ hasText: eventTitle }).getByTestId('delete-event-btn').click()
-    }
-
-    async deleteLastEvent(): Promise<void> {
-        await this.allEvents
-            .last()
-            .getByTestId('delete-event-btn')
-            .click();
-        await this.page
-            .getByTestId('confirm-dialog-yes')
-            .click();
     }
 }
