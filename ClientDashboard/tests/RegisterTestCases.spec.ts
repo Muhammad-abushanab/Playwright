@@ -55,4 +55,49 @@ test.describe('Register Page Tests', () => {
     console.log(`Attempted to register user with mismatched passwords: ${user.email}`);
     await expect(page.getByText('Password and Confirm Password must match with each other.')).toBeVisible();
   });
-})
+  test('Register with invalid email format', async ({ page }) => {
+    const user = createUser();
+    user.email = 'invalid-email-format';
+    const loginPage = new LoginPage(page);
+    await page.goto(process.env.URL!);
+    await expect(page).toHaveTitle(/Let's Shop/);
+    const registerPage = await loginPage.goToRegister();
+    await registerPage.register(user);
+    console.log(`Attempted to register user with invalid email format: ${user.email}`);
+    await expect(page.getByText('*Enter Valid Email')).toBeVisible();
+  })
+  test('Register with empty required fields', async ({ page }) => {
+    const user = createUser();
+    user.firstName = ''; 
+    const loginPage = new LoginPage(page);
+    await page.goto(process.env.URL!);
+    await expect(page).toHaveTitle(/Let's Shop/);
+    const registerPage = await loginPage.goToRegister();
+    await registerPage.register(user);
+    console.log(`Attempted to register user with empty required fields: ${user.email}`);
+    await expect(page.getByText('*First Name is required')).toBeVisible();
+  });
+  test('Register with invalid phone number format', async ({ page }) => {
+    const user = createUser();
+    user.phoneNumber = '12345'; // Invalid phone number format
+    const loginPage = new LoginPage(page);
+    await page.goto(process.env.URL!);
+    await expect(page).toHaveTitle(/Let's Shop/);
+    const registerPage = await loginPage.goToRegister();
+    await registerPage.register(user);
+    console.log(`Attempted to register user with invalid phone number format: ${user.email}`);
+    await expect(page.getByText('*Phone Number must be 10 digit')).toBeVisible();
+  })
+  test('Register with invalid password format', async ({ page }) => {
+    const user = createUser();
+    user.password = 'short'; // Invalid password format
+    user.confirmPassword = 'short';
+    const loginPage = new LoginPage(page);
+    await page.goto(process.env.URL!);
+    await expect(page).toHaveTitle(/Let's Shop/);
+    const registerPage = await loginPage.goToRegister();
+    await registerPage.register(user);
+    console.log(`Attempted to register user with invalid password format: ${user.email}`);
+    await expect(page.getByRole('alert', { name: 'Password must be 8 Character' })).toBeVisible();
+  });
+});
