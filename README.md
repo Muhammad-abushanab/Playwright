@@ -1,77 +1,137 @@
-# Client Dashboard – Playwright E2E Automation Framework
+# Playwright Test Automation Portfolio
 
-![Playwright](https://img.shields.io/badge/Playwright-1.65-2EAD33?logo=playwright&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-1.6x-2EAD33?logo=playwright&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-LTS-339933?logo=node.js&logoColor=white)
 ![Faker](https://img.shields.io/badge/Test%20Data-Faker-blueviolet)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
 
-End-to-end UI test automation framework for the **"Let's Shop" client dashboard**, an Angular e-commerce web app.
-Built with **Playwright + TypeScript** using the **Page Object Model** and a **test data factory** for
-fully dynamic, repeatable test runs.
+A collection of **end-to-end test automation frameworks** built with **Playwright and TypeScript**.
+Each framework targets a different web application and shows a different set of automation techniques,
+from UI Page Object design to API authentication, session reuse and dynamic test data.
 
-> 🚧 **Status:** Active development. The framework is in its initial phase, and coverage currently focuses on the
-> user registration flow. See the [Roadmap](#-roadmap) for what's next.
+| Framework | Application under test | Focus | Tests |
+|-----------|------------------------|-------|:-----:|
+| [**EventHub**](#-eventhub--event-management--ticket-booking) | Event management and ticket booking platform | Full E2E business flows, API + UI, session reuse | 9 |
+| [**ClientDashboard**](#-clientdashboard--e-commerce-user-registration) | "Let's Shop" Angular e-commerce dashboard | Form validation, dynamic test data, negative testing | 7 |
 
----
-
-## ✨ Highlights
-
-- **Page Object Model (POM)**: one class per screen (`LoginPage`, `RegisterPage`), keeping locators and actions out of the tests.
-- **Page-to-page navigation**: `loginPage.goToRegister()` returns a `RegisterPage`, so tests read like the user journey.
-- **Test data factory**: `createUser(overrides?)` generates a unique user for every test with Faker, using TypeScript `Partial<T>` overrides for edge cases.
-- **Resilient locators**: user-facing locators (`getByRole`, `getByPlaceholder`) with `exact` matching. Stable `id` fallbacks are used, with a comment, only where the app's labels aren't linked to their inputs.
-- **Positive and negative coverage**: a valid registration plus validation and error cases.
-- **Web-first assertions**: auto-retrying `expect(...)` assertions, with no hard waits or `sleep`s.
-- **Environment-based configuration**: the target URL is loaded from `.env`, so nothing environment-specific is hardcoded.
-- **HTML reporting and traces**: the built-in Playwright HTML report, with traces captured on retry.
+> 🚧 **Status:** Active development. EventHub is the more mature framework, and ClientDashboard is in its initial phase.
 
 ---
 
-## 🧰 Tech Stack
+## 🧠 Skills Demonstrated
 
-| Area            | Tool                                   |
-|-----------------|----------------------------------------|
-| Test runner     | [Playwright Test](https://playwright.dev) |
-| Language        | TypeScript                             |
-| Test data       | [@faker-js/faker](https://fakerjs.dev) |
-| Configuration   | dotenv                                 |
-| Reporting       | Playwright HTML Reporter               |
-| CI (scaffolded) | GitHub Actions                         |
+| Technique | EventHub | ClientDashboard |
+|-----------|:--------:|:---------------:|
+| Page Object Model, organised by feature | ✅ | ✅ |
+| Accessible, user-facing locators (`getByRole`, `getByLabel`, `getByTestId`) | ✅ | ✅ |
+| Locator chaining and filtering (`filter({ hasText })`, `.or()`) | ✅ | |
+| Web-first and polling assertions (`expect.poll`, `toBeInViewport`) | ✅ | ✅ |
+| **API testing**: login via `request` context and JWT validation | ✅ | |
+| **Auth token injection** into `localStorage` (`addInitScript`) to skip UI login | ✅ | |
+| **Session reuse** with `storageState` | ✅ | |
+| Full E2E business flow across multiple pages | ✅ | |
+| Data-consistency checks (seat count, price, booking reference) | ✅ | |
+| **Test data factory** with Faker and TypeScript `Partial<T>` overrides | | ✅ |
+| Positive and negative / validation testing | ✅ | ✅ |
+| Environment config (`.env` / config module) | ✅ | ✅ |
+| HTML reporting, traces, GitHub Actions workflow | ✅ | ✅ |
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```
-ClientDashboard/
-├── Pages/                          # Page Object Model classes
-│   ├── LoginPage.ts                #   Login screen + navigation to Register
-│   └── RegisterPage.ts             #   Registration form + RegisterDetails type
-├── tests/
-│   └── RegisterTestCases.spec.ts   # Registration test suite
-├── test-data/
-│   └── userFactory.ts              # createUser() test data factory (Faker)
-├── helpers/
-│   └── getRandomRegisteredUser.ts  # Reads previously registered users
-├── playwright.config.ts            # Runner, browser and reporter configuration
-└── .env                            # Environment variables (not committed)
+Playwright/
+├── EventHub/                  # Event management & booking framework
+│   ├── Pages/                 #   Page objects grouped by feature
+│   │   ├── Events/            #     Events list, New Event, Manage Events, Book Tickets
+│   │   ├── Home/              #     Navigation and Admin menu
+│   │   ├── Login/
+│   │   └── Mybookings/
+│   ├── tests/                 #   login, booking, API and session-storage specs
+│   ├── config/                #   Environment configuration
+│   └── playwright.config.ts
+│
+├── ClientDashboard/           # E-commerce registration framework
+│   ├── Pages/                 #   LoginPage, RegisterPage
+│   ├── tests/                 #   Registration specs
+│   ├── test-data/             #   createUser() factory
+│   ├── helpers/               #   Test data helpers
+│   └── playwright.config.ts
+│
+└── Utils/                     # Shared artifacts (e.g. saved auth storage state)
 ```
+
+Each framework is an **independent Playwright project** with its own `package.json` and config,
+so they can be installed and run separately.
 
 ---
 
-## 🧪 Test Coverage
+## 🎟️ EventHub – Event Management & Ticket Booking
 
-**Feature: User Registration**
+An admin-facing event platform where users create events, book tickets and manage bookings.
+The suite covers **complete business flows** and mixes **UI and API** techniques.
 
-| # | Scenario                                  | Type     |
-|---|-------------------------------------------|----------|
-| 1 | Register a new user with valid data       | Positive |
+### Highlights
+
+- **End-to-end admin journey**: create an event, find it through search, book tickets, then confirm that
+  the available seats dropped by the right amount and that the booking reference appears in *My Bookings*.
+- **API authentication**: logs in through the REST API in `beforeAll`, checks that the response is a valid JWT,
+  then injects the token into `localStorage` with `page.addInitScript`, which skips the UI login entirely.
+- **Session reuse**: authenticates once, saves the session with `context.storageState()` and starts
+  later tests already logged in.
+- **Robust locators**: `getByTestId`, plus row and card filtering such as
+  `eventRows.filter({ hasText: title }).getByTestId('delete-event-btn')`, to act on one specific item in a list.
+- **Handles async UI updates** with `expect.poll()` instead of hard waits.
+- **Unique test data**: event titles include a timestamp, so runs never collide.
+
+### Test Coverage
+
+| Spec | Scenario |
+|------|----------|
+| `login.spec.ts` | Login with valid credentials |
+| | Login with invalid credentials (error message) |
+| | Login with empty credentials (validation) |
+| `booking.spec.ts` | Admin creates an event and books tickets (full E2E with seat and price checks) |
+| | Admin cancels an existing booking |
+| | Admin deletes an event from *Manage Events* |
+| | Admin views booking details and checks refund eligibility |
+| `apiTest.spec.ts` | API login, JWT validation and token injection into `localStorage` |
+| `sessionStorage.spec.ts` | Reuses a saved `storageState` session to run the E2E booking flow |
+
+---
+
+## 🛒 ClientDashboard – E-commerce User Registration
+
+The registration flow of an Angular e-commerce dashboard, with a focus on
+**form validation**, **negative testing** and **dynamic, repeatable test data**.
+
+### Highlights
+
+- **One page object per screen**: Login and Register are separate routes, so each has its own class.
+  `loginPage.goToRegister()` returns a `RegisterPage`, so tests read like the user journey.
+- **Test data factory**: `createUser(overrides?)` builds a unique user with Faker on every call.
+  Each test overrides only the field it is testing:
+  ```ts
+  const user = createUser({ confirmPassword: 'DifferentPassword123!' });
+  ```
+- **Deliberate randomness**: values that don't affect behaviour (names, email, phone) are random.
+  Values that pick a code path (occupation, gender) are fixed, so failures are reproducible.
+- **Resilient locators**: `exact: true` name matching, with documented `id` fallbacks where the
+  application's labels aren't linked to their inputs.
+
+### Test Coverage
+
+| # | Scenario | Type |
+|---|----------|------|
+| 1 | Register a new user with valid data | Positive |
 | 2 | Register with an already-registered email | Negative |
-| 3 | Register with mismatched passwords        | Negative |
-| 4 | Register with an invalid email format     | Negative |
-| 5 | Register with empty required fields       | Negative |
-| 6 | Register with an invalid phone number     | Negative |
-| 7 | Register with an invalid password format  | Negative |
+| 3 | Register with mismatched passwords | Negative |
+| 4 | Register with an invalid email format | Negative |
+| 5 | Register with empty required fields | Negative |
+| 6 | Register with an invalid phone number | Negative |
+| 7 | Register with an invalid password format | Negative |
 
 ---
 
@@ -82,80 +142,60 @@ ClientDashboard/
 - [Node.js](https://nodejs.org/) (LTS)
 - npm
 
-### Installation
+### Install and run a framework
+
+Each framework is installed and run from its own folder:
 
 ```bash
 git clone <repo-url>
-cd ClientDashboard
+cd Playwright/EventHub          # or: cd Playwright/ClientDashboard
 npm ci
 npx playwright install --with-deps chromium
 ```
 
 ### Configuration
 
-Create a `.env` file in the project root:
+| Framework | Where to configure |
+|-----------|--------------------|
+| EventHub | `config/config.ts`: application URL, API URL and test account |
+| ClientDashboard | `.env` file in the project folder, containing `URL=<application-under-test-url>` |
 
-```env
-URL=<application-under-test-url>
-```
-
-### Running the Tests
+### Useful commands
 
 ```bash
-# Run all tests (headless)
-npx playwright test
-
-# Run with the browser visible
-npx playwright test --headed
-
-# Debug step by step with the Playwright Inspector
-npx playwright test --debug
-
-# Interactive UI mode
-npx playwright test --ui
-
-# Run a single test by name
-npx playwright test -g "mismatched passwords"
-
-# Open the last HTML report
-npx playwright show-report
+npx playwright test                    # run all tests (headless)
+npx playwright test --headed           # run with the browser visible
+npx playwright test --ui               # interactive UI mode
+npx playwright test --debug            # step through with the Playwright Inspector
+npx playwright test tests/login.spec.ts   # run one spec file
+npx playwright test -g "refund"        # run tests whose name matches
+npx playwright show-report             # open the last HTML report
 ```
 
 ---
 
-## 🏗️ Design Decisions
+## 🏗️ Design Principles
 
-**Page Object Model, one class per screen.**
-Login and Register are separate routes (`#/auth/login`, `#/auth/register`), so each has its own page object.
-This avoids locator name clashes, since both screens have an email, a password and a submit button.
-
-**A test data factory instead of static fixtures.**
-Hardcoded users break on the second run ("user already exists"). `createUser()` builds a unique user per call.
-Values that don't affect behaviour, such as names, email and phone, are random. Values that select a code path,
-such as occupation and gender, are fixed by default, so a failure is reproducible rather than random.
-Each test overrides only what it is testing:
-
-```ts
-const user = createUser({ confirmPassword: 'DifferentPassword123!' });
-```
-
-**A locator strategy built on accessibility first.**
-Locators follow Playwright's recommended priority: role, then label, then placeholder, then test id or `id`.
-Name matching uses `exact: true`, because Playwright's default substring matching caused
-`name: 'Password'` to resolve to the *Confirm Password* field.
+- **Tests describe behaviour; page objects hold the details.** Specs read like user stories, and all
+  locators and interactions live in page classes.
+- **Prefer what the user sees.** Locators follow Playwright's priority order: role, then label,
+  then placeholder, then test id. CSS selectors are a documented last resort.
+- **No hard waits.** Synchronisation relies on auto-waiting actions, web-first assertions and `expect.poll`.
+- **Every run is independent.** Generated data (timestamps, Faker) means tests can run again and again without cleanup.
+- **Use the API to set things up, the UI to verify.** Logging in through the API or reusing a stored session
+  keeps UI tests focused on what they check, and makes them faster.
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Login and Forgot Password test suites
-- [ ] Custom Playwright fixtures to inject page objects into tests
-- [ ] `baseURL` in the config and `beforeEach` hooks for shared setup
-- [ ] Self-contained test data (no dependency on earlier runs)
-- [ ] Run in CI with GitHub Actions, with the URL stored as a secret
-- [ ] Cross-browser projects (Firefox, WebKit)
-- [ ] API-level setup to speed up the UI tests
-- [ ] ESLint (`eslint-plugin-playwright`) and Prettier
+- [ ] Custom Playwright fixtures to inject page objects and authenticated sessions
+- [ ] `baseURL` in each config and shared `beforeEach` setup
+- [ ] Move credentials and URLs to environment variables and CI secrets
+- [ ] Root-level GitHub Actions workflow running both frameworks
+- [ ] Cross-browser projects (Firefox, WebKit) and mobile viewports
+- [ ] ClientDashboard: Login and Forgot Password suites, self-contained test data
+- [ ] ESLint (`eslint-plugin-playwright`) and Prettier across the repository
 
 ---
 
